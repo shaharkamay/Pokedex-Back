@@ -42,7 +42,7 @@ router.put('/catch/:id', async (req, res) => {
         }
         const pokemonData = minimizePokemonObj(await pokedex.getPokemonByName(id));
         const username = req.username;
-        const filePath = path.resolve(path.join('./static-files/users', username, `${id}.json`));
+        const filePath = path.resolve(path.join('./src/static-files/users', username, `${id}.json`));
         if(fs.existsSync(filePath)) {
             throw { status: 403, message: "you already have this pokemon!" };
         } else {
@@ -60,7 +60,7 @@ router.delete("/release/:id", (req, res) => {
     const id = req.params.id;
     const username = req.username;
     try {
-        const filePath = path.resolve(path.join('./static-files/users', username, `${id}.json`));
+        const filePath = path.resolve(path.join('./src/static-files/users', username, `${id}.json`));
         if(fs.existsSync(filePath)) {
             fs.rmSync(filePath);
         } else {
@@ -75,7 +75,7 @@ router.delete("/release/:id", (req, res) => {
 
 router.get("/", (req, res) => {
     const username = req.username;
-    const userPath = path.resolve(path.join("./static-files/users", username));
+    const userPath = path.resolve(path.join("./src/static-files/users", username));
     const pokemons = [];
     try {
         if(fs.existsSync(userPath)) {
@@ -84,7 +84,6 @@ router.get("/", (req, res) => {
                 for(const pokejson of pokeJsons) {
                     const userPokemon =JSON.parse(fs.readFileSync(`${userPath}/${pokejson}`));
                     pokemons.push(userPokemon);
-
                 }
             } else { throw { status: 400, message: "you did not catch any pokemon yet!" }; }
         }
