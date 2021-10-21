@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const Pokedex = require('pokedex-promise-v2');
+const path = require('path');
 const fs = require('fs');
+const Pokedex = require('pokedex-promise-v2');
 const pokedex = new Pokedex();
 
 
@@ -40,8 +41,9 @@ router.put('/catch/:id', async (req, res) => {
             throw { status: 400, message: "id must be of type number" };
         }
         const pokemonData = minimizePokemonObj(await pokedex.getPokemonByName(id));
-        
-        fs.writeFileSync('./static-files/dataBase.json', JSON.stringify(pokemonData));
+        const username = req.username;
+        const filePath = path.resolve(path.join('./static-files/users', username, `${id}.json`));
+        fs.writeFileSync(filePath, JSON.stringify(pokemonData));
         res.send(pokemonData);
         res.end();
     } catch (err) {
