@@ -43,7 +43,11 @@ router.put('/catch/:id', async (req, res) => {
         const pokemonData = minimizePokemonObj(await pokedex.getPokemonByName(id));
         const username = req.username;
         const filePath = path.resolve(path.join('./static-files/users', username, `${id}.json`));
-        fs.writeFileSync(filePath, JSON.stringify(pokemonData));
+        if(fs.existsSync(filePath)) {
+            throw { status: 403, message: "you already have this pokemon!" };
+        } else {
+            fs.writeFileSync(filePath, JSON.stringify(pokemonData));
+        }
         res.send(pokemonData);
         res.end();
     } catch (err) {
@@ -52,6 +56,23 @@ router.put('/catch/:id', async (req, res) => {
 })
 
 
+router.delete("/release/:id", (req, res) => {
+    const id = req.params.id;
+    const username = req.username;
+    try {
+        const filePath = path.resolve(path.join('./static-files/users', username, `${id}.json`));
+        if(fs.existsSync(filePath)) {
+            fs.rmSync(filePath);
+        } else {
+            throw { status: 403, message: "you cannot release a pokemon u do not have!" };
+        }
+        res.send("success");
+        res.end();
+    } catch (err) {
+        console.log(err);
+    }
+});
+router.get("/users/<username>", async (req, res) => {});
 
 
 
