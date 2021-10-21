@@ -72,7 +72,30 @@ router.delete("/release/:id", (req, res) => {
         console.log(err);
     }
 });
-router.get("/users/<username>", async (req, res) => {});
+
+router.get("/", (req, res) => {
+    const username = req.username;
+    const userPath = path.resolve(path.join("./static-files/users", username));
+    const pokemons = [];
+    try {
+        if(fs.existsSync(userPath)) {
+            const pokeJsons = fs.readdirSync(userPath);
+            if(pokeJsons.length > 0) {
+                for(const pokejson of pokeJsons) {
+                    const userPokemon =JSON.parse(fs.readFileSync(`${userPath}/${pokejson}`));
+                    pokemons.push(userPokemon);
+
+                }
+            } else { throw { status: 400, message: "you did not catch any pokemon yet!" }; }
+        }
+        console.log(pokemons);
+        res.send(pokemons);
+        res.end();
+        
+    } catch (err) {
+        console.log(err);
+    }
+});
 
 
 
