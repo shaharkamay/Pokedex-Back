@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Pokedex = require('pokedex-promise-v2');
+const fs = require('fs');
 const pokedex = new Pokedex();
 
 
@@ -12,7 +13,7 @@ router.get('/get/:id', async (req, res) => {
         if(isNaN(id) || id <= 0) {
             throw { status: 400, message: "id must be of type number" };
         }
-        const pokemonData = parsePokemon(await pokedex.getPokemonByName(id));
+        const pokemonData = minimizePokemonObj(await pokedex.getPokemonByName(id));
         res.send(pokemonData);
     } catch (err) {
         console.log(err);
@@ -25,14 +26,45 @@ router.get("/query", async (req, res) => {
         if(!name) {
             throw { status: 400, message: "name must exist" };
         }
-        const pokemonData = parsePokemon(await pokedex.getPokemonByName(name));
+        const pokemonData = minimizePokemonObj(await pokedex.getPokemonByName(name));
         res.send(pokemonData);
     } catch (err) {
         console.log(err);
     }
 })
 
-function parsePokemon(pokemon) {
+router.put('/catch/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        if(isNaN(id) || id <= 0) {
+            throw { status: 400, message: "id must be of type number" };
+        }
+        const pokemonData = minimizePokemonObj(await pokedex.getPokemonByName(id));
+        
+        fs.writeFileSync('./static-files/dataBase.json', JSON.stringify(pokemonData));
+        res.send(pokemonData);
+        res.end();
+    } catch (err) {
+        console.log(err);
+    }
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function minimizePokemonObj(pokemon) {
     return {
       name: pokemon.name,
       height: pokemon.height,
