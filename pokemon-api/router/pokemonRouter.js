@@ -19,16 +19,17 @@ router.get('/get/:id', async (req, res) => {
     }
 })
 
-router.get("/query", (req, res) => {
-
-    // pokedex.getPokemonByName('eevee') // with Promise
-    // .then(function(response) {
-    //     console.log(response);
-    // })
-    // .catch(function(error) {
-    //     console.log('There was an ERROR: ', error);
-    // });
-
+router.get("/query", async (req, res) => {
+    const name = req.query.name;
+    try {
+        if(!name) {
+            throw { status: 400, message: "name must exist" };
+        }
+        const pokemonData = parsePokemon(await pokedex.getPokemonByName(name));
+        res.send(pokemonData);
+    } catch (err) {
+        console.log(err);
+    }
 })
 
 function parsePokemon(pokemon) {
@@ -37,8 +38,8 @@ function parsePokemon(pokemon) {
       height: pokemon.height,
       weight: pokemon.weight,
       types: pokemon.types.map(({ type }) => type),
-      front_pic: pokemon.sprites.front_pic,
-      back_pic: pokemon.sprites.back_pic,
+      front_pic: pokemon.sprites.front_default,
+      back_pic: pokemon.sprites.back_default,
       abilities: pokemon.abilities.map(({ ability }) => ability),
     };
 }
