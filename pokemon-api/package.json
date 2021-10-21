@@ -11,7 +11,8 @@
   "author": "Shahar Kamay <shahar.kamay@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "pokedex-promise-v2": "^3.3.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.14"

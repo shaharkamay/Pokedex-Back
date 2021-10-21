@@ -1,6 +1,11 @@
 const express = require('express');
+const router = require('./router/pokemonRouter');
 const app = express();
 const port = 8080;
+
+app.use(express.json());
+
+app.use('/pokemon', router);
 
 // start the server
 app.listen(port, function() {
