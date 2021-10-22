@@ -7,73 +7,78 @@ const pokedex = new Pokedex();
 
 
 
-router.get('/get/:id', async (req, res) => {
+router.get('/get/:id', async (req, res, next) => {
     const id = req.params.id;
-
-    try {
-        if(isNaN(id) || id <= 0) {
-            throw { status: 400, message: "id must be of type number" };
+    if(isNaN(id) || id < 0) {
+        next({ status: 400, message: "id must be of type number and bigger than 0" });
+    } else {
+        try {
+            const pokemonData = minimizePokemonObj(await pokedex.getPokemonByName(id));
+            res.json(200, {data: pokemonData});
+            res.end();
+        } catch (err) {
+            next({ status: 404, message: "pokemon doesnt exist" });
         }
-        const pokemonData = minimizePokemonObj(await pokedex.getPokemonByName(id));
-        res.send(pokemonData);
-    } catch (err) {
-        console.log(err);
     }
 })
 
-router.get("/query", async (req, res) => {
+router.get("/query", async (req, res, next) => {
     const name = req.query.name;
-    try {
-        if(!name) {
-            throw { status: 400, message: "name must exist" };
+    if(!name) {
+        next({ status: 400, message: "pokemon name doesnt exist!" });
+    } else {
+        try {
+            const pokemonData = minimizePokemonObj(await pokedex.getPokemonByName(name));
+            res.json(200, {data: pokemonData});
+        } catch (err) {
+            next({ status: 404, message: "pokemon doesnt exist" });
         }
-        const pokemonData = minimizePokemonObj(await pokedex.getPokemonByName(name));
-        res.send(pokemonData);
-    } catch (err) {
-        console.log(err);
     }
 })
 
-router.put('/catch/:id', async (req, res) => {
+router.put('/catch/:id', async (req, res, next) => {
     const id = req.params.id;
     try {
         if(isNaN(id) || id <= 0) {
-            throw { status: 400, message: "id must be of type number" };
-        }
-        const pokemonData = minimizePokemonObj(await pokedex.getPokemonByName(id));
-        const username = req.username;
-        const filePath = path.resolve(path.join('./src/static-files/users', username, `${id}.json`));
-        if(fs.existsSync(filePath)) {
-            throw { status: 403, message: "you already have this pokemon!" };
+            next({ status: 400, message: "id must be of type number or bigger than 0" });
         } else {
-            fs.writeFileSync(filePath, JSON.stringify(pokemonData));
+            const pokemonData = minimizePokemonObj(await pokedex.getPokemonByName(id));
+            const username = req.username;
+            const filePath = path.resolve(path.join('./src/static-files/users', username, `${id}.json`));
+            if(fs.existsSync(filePath)) {
+                next({ status: 403, message: "you already have this pokemon!" });
+            } else {
+                fs.writeFileSync(filePath, JSON.stringify(pokemonData));
+                res.json(200, {data: pokemonData});
+                res.end();
+            }
         }
-        res.send(pokemonData);
-        res.end();
     } catch (err) {
-        console.log(err);
+        console.log("Something went wrong with your request");
+        next({status: 500 , message: "internal server error"});
     }
 })
 
 
-router.delete("/release/:id", (req, res) => {
+router.delete("/release/:id", (req, res, next) => {
     const id = req.params.id;
     const username = req.username;
     try {
         const filePath = path.resolve(path.join('./src/static-files/users', username, `${id}.json`));
         if(fs.existsSync(filePath)) {
             fs.rmSync(filePath);
+            res.json(200, {data: "pokemon has been released successfully"});
+            res.end();
         } else {
-            throw { status: 403, message: "you cannot release a pokemon u do not have!" };
+            next({ status: 403, message: "you cannot release a pokemon you do not have!" });
         }
-        res.send("success");
-        res.end();
     } catch (err) {
-        console.log(err);
+        console.log("Something went wrong with your request");
+        next({status: 500 , message: "internal server error"});
     }
 });
 
-router.get("/", (req, res) => {
+router.get("/", (req, res, next) => {
     const username = req.username;
     const userPath = path.resolve(path.join("./src/static-files/users", username));
     const pokemons = [];
@@ -85,14 +90,13 @@ router.get("/", (req, res) => {
                     const userPokemon =JSON.parse(fs.readFileSync(`${userPath}/${pokejson}`));
                     pokemons.push(userPokemon);
                 }
-            } else { throw { status: 400, message: "you did not catch any pokemon yet!" }; }
+            } else { next({ status: 409, message: "user didnt catch any pokemons yet!" }); }
         }
-        console.log(pokemons);
-        res.send(pokemons);
+        res.json(200, {data: pokemons});
         res.end();
-        
     } catch (err) {
-        console.log(err);
+        console.log("Something went wrong with your request");
+        next({status: 500 , message: "internal server error"});
     }
 });
 

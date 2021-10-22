@@ -6,17 +6,18 @@ const Pokedex = require("pokedex-promise-v2");
 const pokedex = new Pokedex();
 
 
-userRouter.post("/info", (req, res) => {
+userRouter.post("/info", (req, res, next) => {
     const  username  = req.username;
     try {
         if(username){
-            res.send(username)
+            res.json(200, {data: username})
             res.end();
         }else{
-            throw { status: 400, message: "user doesnt exist!" };
+            next({ status: 401, message: "user doesnt exist!" });
         }
     } catch (err) {
-        console.log(err);
+        console.log("Something went wrong with your request");
+        next({status: 500 , message: "internal server error"});
     }
 })
 
