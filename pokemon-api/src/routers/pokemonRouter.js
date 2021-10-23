@@ -9,12 +9,12 @@ const pokedex = new Pokedex();
 
 router.get('/get/:id', async (req, res, next) => {
     const id = req.params.id;
-    if(isNaN(id) || id < 0) {
+    if(isNaN(id) || id <= 0) {
         next({ status: 400, message: "id must be of type number and bigger than 0" });
     } else {
         try {
             const pokemonData = minimizePokemonObj(await pokedex.getPokemonByName(id));
-            res.json(200, {data: pokemonData});
+            res.status(200).json(pokemonData);
             res.end();
         } catch (err) {
             next({ status: 404, message: "pokemon doesnt exist" });
@@ -25,11 +25,11 @@ router.get('/get/:id', async (req, res, next) => {
 router.get("/query", async (req, res, next) => {
     const name = req.query.name;
     if(!name) {
-        next({ status: 400, message: "pokemon name doesnt exist!" });
+        next({ status: 400, message: "name querystring doesnt exist!" });
     } else {
         try {
             const pokemonData = minimizePokemonObj(await pokedex.getPokemonByName(name));
-            res.json(200, {data: pokemonData});
+            res.status(200).json(pokemonData);
         } catch (err) {
             next({ status: 404, message: "pokemon doesnt exist" });
         }
@@ -38,6 +38,7 @@ router.get("/query", async (req, res, next) => {
 
 router.put('/catch/:id', async (req, res, next) => {
     const id = req.params.id;
+    console.log(id);
     try {
         if(isNaN(id) || id <= 0) {
             next({ status: 400, message: "id must be of type number or bigger than 0" });
@@ -49,7 +50,7 @@ router.put('/catch/:id', async (req, res, next) => {
                 next({ status: 403, message: "you already have this pokemon!" });
             } else {
                 fs.writeFileSync(filePath, JSON.stringify(pokemonData));
-                res.json(200, {data: pokemonData});
+                res.status(200).json(pokemonData);
                 res.end();
             }
         }
@@ -67,7 +68,7 @@ router.delete("/release/:id", (req, res, next) => {
         const filePath = path.resolve(path.join('./src/static-files/users', username, `${id}.json`));
         if(fs.existsSync(filePath)) {
             fs.rmSync(filePath);
-            res.json(200, {data: "pokemon has been released successfully"});
+            res.status(200).json(`pokemon with id ${id} has been released successfully`);
             res.end();
         } else {
             next({ status: 403, message: "you cannot release a pokemon you do not have!" });
@@ -90,10 +91,10 @@ router.get("/", (req, res, next) => {
                     const userPokemon =JSON.parse(fs.readFileSync(`${userPath}/${pokejson}`));
                     pokemons.push(userPokemon);
                 }
+                res.status(200).json(pokemons);
+                res.end();
             } else { next({ status: 409, message: "user didnt catch any pokemons yet!" }); }
         }
-        res.json(200, {data: pokemons});
-        res.end();
     } catch (err) {
         console.log("Something went wrong with your request");
         next({status: 500 , message: "internal server error"});
@@ -115,13 +116,14 @@ router.get("/", (req, res, next) => {
 
 function minimizePokemonObj(pokemon) {
     return {
-      name: pokemon.name,
-      height: pokemon.height,
-      weight: pokemon.weight,
-      types: pokemon.types.map(({ type }) => type),
-      front_pic: pokemon.sprites.front_default,
-      back_pic: pokemon.sprites.back_default,
-      abilities: pokemon.abilities.map(({ ability }) => ability),
+        id: pokemon.id,
+        name: pokemon.name,
+        height: pokemon.height,
+        weight: pokemon.weight,
+        types: pokemon.types.map(({ type }) => type),
+        front_pic: pokemon.sprites.front_default,
+        back_pic: pokemon.sprites.back_default,
+        abilities: pokemon.abilities.map(({ ability }) => ability),
     };
 }
 

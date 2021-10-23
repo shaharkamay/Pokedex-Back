@@ -10,7 +10,7 @@ userRouter.post("/info", (req, res, next) => {
     const  username  = req.username;
     try {
         if(username){
-            res.json(200, {data: username})
+            res.status(200).json(username);
             res.end();
         }else{
             next({ status: 401, message: "user doesnt exist!" });
